@@ -3,7 +3,7 @@ package service
 import (
 	"log"
 
-	"github.com/paypal/gatt"
+	"github.com/ans-net/gatt"
 )
 
 var (
