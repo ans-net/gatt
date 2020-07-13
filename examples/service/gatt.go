@@ -1,8 +1,6 @@
 package service
 
 import (
-	"log"
-
 	"github.com/ans-net/gatt"
 )
 
@@ -11,6 +9,7 @@ var (
 	attrServiceChangedUUID = gatt.UUID16(0x2A05)
 )
 
+// NewGattService creates a gatt service and returns it. Doesn't do anything right now.
 // NOTE: OS X provides GAP and GATT services, and they can't be customized.
 // For Linux/Embedded, however, this is something we want to fully control.
 func NewGattService() *gatt.Service {
@@ -18,7 +17,7 @@ func NewGattService() *gatt.Service {
 	s.AddCharacteristic(attrServiceChangedUUID).HandleNotifyFunc(
 		func(r gatt.Request, n gatt.Notifier) {
 			go func() {
-				log.Printf("TODO: indicate client when the services are changed")
+				//TODO: indicate client when the services are changed
 			}()
 		})
 	return s

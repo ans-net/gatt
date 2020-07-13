@@ -2,7 +2,7 @@ package gatt
 
 import "errors"
 
-var notImplemented = errors.New("not implemented")
+var errNotImplemented = errors.New("not implemented")
 
 type State int
 

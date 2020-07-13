@@ -1,8 +1,9 @@
+// +build darwin
+
 package gatt
 
 import (
 	"errors"
-	"log"
 
 	"github.com/ans-net/gatt/xpc"
 )
@@ -66,7 +67,7 @@ func (p *peripheral) DiscoverIncludedServices(ss []UUID, s *Service) ([]*Service
 		return nil, attEcode(res)
 	}
 	// TODO
-	return nil, notImplemented
+	return nil, errNotImplemented
 }
 
 func (p *peripheral) DiscoverCharacteristics(cs []UUID, s *Service) ([]*Characteristic, error) {
@@ -262,7 +263,7 @@ func (p *peripheral) loop() {
 				b := rsp.args.MustGetBytes("kCBMsgArgData")
 				f := p.sub.fn(ch)
 				if f == nil {
-					log.Printf("notified by unsubscribed handle")
+					logInfo("notified by unsubscribed handle")
 					// FIXME: should terminate the connection?
 				} else {
 					go f(b, nil)

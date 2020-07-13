@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/ans-net/gatt/linux/evt"
 	"github.com/ans-net/gatt/linux/util"
@@ -105,30 +104,20 @@ func (c *Cmd) processCmdEvents() {
 	for {
 		select {
 		case status := <-c.statusc:
-			found := false
 			for i, p := range c.sent {
 				if uint16(p.op) == status.CommandOpcode {
-					found = true
 					c.sent = append(c.sent[:i], c.sent[i+1:]...)
 					close(p.done)
 					break
 				}
 			}
-			if !found {
-				log.Printf("Can't find the cmdPkt for this CommandStatusEP: %v", status)
-			}
 		case comp := <-c.compc:
-			found := false
 			for i, p := range c.sent {
 				if uint16(p.op) == comp.CommandOPCode {
-					found = true
 					c.sent = append(c.sent[:i], c.sent[i+1:]...)
 					p.done <- comp.ReturnParameters
 					break
 				}
-			}
-			if !found {
-				log.Printf("Can't find the cmdPkt for this CommandCompleteEP: %v", comp)
 			}
 		}
 	}

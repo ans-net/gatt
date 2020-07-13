@@ -3,7 +3,6 @@ package linux
 import (
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/ans-net/gatt/linux/cmd"
 )
@@ -63,7 +62,7 @@ func (c *conn) write(cid int, b []byte) (int, error) {
 	flag := uint8(0) // ACL data continuation flag
 	tlen := len(b)   // Total length of the l2cap payload
 
-	// log.Printf("W: [ % X ]", b)
+	// logInfo("W: [ % X ]", b)
 	w := append(
 		[]byte{
 			0,    // packet type
@@ -118,7 +117,7 @@ func (c *conn) Read(b []byte) (int, error) {
 		copy(b[n:], a.b)
 		n += len(a.b)
 	}
-	// log.Printf("R: [ % X ]", b[:n])
+	// logInfo("R: [ % X ]", b[:n])
 	return n, nil
 }
 
@@ -134,7 +133,7 @@ func (c *conn) Close() error {
 	defer h.connsmu.Unlock()
 	_, found := h.conns[hh]
 	if !found {
-		// log.Printf("l2conn: 0x%04x already disconnected", hh)
+		// logInfo("l2conn: 0x%04x already disconnected", hh)
 		return nil
 	}
 	if err, _ := h.c.Send(cmd.Disconnect{ConnectionHandle: hh, Reason: 0x13}); err != nil {
@@ -168,7 +167,6 @@ func (c *conn) Close() error {
 // 0x15 LE Credit Based Connection response		0x0005
 // 0x16 LE Flow Control Credit					0x0005
 func (c *conn) handleSignal(a *aclData) error {
-	log.Printf("ignore l2cap signal:[ % X ]", a.b)
 	// FIXME: handle LE signaling channel (CID: 5)
 	return nil
 }

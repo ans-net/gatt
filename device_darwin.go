@@ -1,3 +1,5 @@
+// +build darwin
+
 package gatt
 
 import (
@@ -5,7 +7,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
@@ -367,13 +368,13 @@ func (d *device) CancelConnection(p Peripheral) {
 // (implements XpcEventHandler)
 func (d *device) HandleXpcEvent(event xpc.Dict, err error) {
 	if err != nil {
-		log.Println("error:", err)
+		logError("error: %s", err)
 		return
 	}
 
 	id := event.MustGetInt("kCBMsgId")
 	args := event.MustGetDict("kCBMsgArgs")
-	//log.Printf(">> %d, %v", id, args)
+	//logInfo(">> %d, %v", id, args)
 
 	switch id {
 	case // device event
@@ -474,7 +475,7 @@ func (d *device) HandleXpcEvent(event xpc.Dict, err error) {
 		p.rspc <- message{id: id, args: args}
 
 	default:
-		log.Printf("Unhandled event: %#v", event)
+		logInfo("Unhandled event: %#v", event)
 	}
 }
 
@@ -500,6 +501,6 @@ func (d *device) loop() {
 }
 
 func (d *device) sendCBMsg(id int, args xpc.Dict) {
-	// log.Printf("<< %d, %v", id, args)
+	// logInfo("<< %d, %v", id, args)
 	d.conn.Send(xpc.Dict{"kCBMsgId": id, "kCBMsgArgs": args}, false)
 }

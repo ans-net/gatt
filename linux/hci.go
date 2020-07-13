@@ -3,7 +3,6 @@ package linux
 import (
 	"fmt"
 	"io"
-	"log"
 	"sync"
 
 	"github.com/ans-net/gatt/linux/cmd"
@@ -178,29 +177,13 @@ func (h *HCI) mainLoop() {
 
 func (h *HCI) handlePacket(b []byte) {
 	t, b := packetType(b[0]), b[1:]
-	var err error
 	switch t {
-	case typCommandPkt:
-		op := uint16(b[0]) | uint16(b[1])<<8
-		log.Printf("unmanaged cmd: opcode (%04x) [ % X ]\n", op, b)
 	case typACLDataPkt:
-		err = h.handleL2CAP(b)
-	case typSCODataPkt:
-		err = fmt.Errorf("SCO packet not supported")
+		h.handleL2CAP(b)
 	case typEventPkt:
 		go func() {
-			err := h.e.Dispatch(b)
-			if err != nil {
-				log.Printf("hci: %s, [ % X]", err, b)
-			}
+			h.e.Dispatch(b)
 		}()
-	case typVendorPkt:
-		err = fmt.Errorf("Vendor packet not supported")
-	default:
-		log.Fatalf("Unknown event: 0x%02X [ % X ]\n", t, b)
-	}
-	if err != nil {
-		log.Printf("hci: %s, [ % X]", err, b)
 	}
 }
 
@@ -339,7 +322,6 @@ func (h *HCI) handleDisconnectionComplete(b []byte) error {
 	c, found := h.conns[hh]
 	if !found {
 		// should not happen, just be cautious for now.
-		log.Printf("l2conn: disconnecting a disconnected 0x%04X connection", hh)
 		return nil
 	}
 	delete(h.conns, hh)
@@ -376,12 +358,10 @@ func (h *HCI) handleL2CAP(b []byte) error {
 	c, found := h.conns[a.attr]
 	if !found {
 		// should not happen, just be cautious for now.
-		log.Printf("l2conn: got data for disconnected handle: 0x%04x", a.attr)
 		return nil
 	}
 	if len(a.b) < 4 {
-		log.Printf("l2conn: l2cap packet is too short/corrupt, length is %d", len(a.b))
-		return nil
+		return fmt.Errorf("l2conn: l2cap packet is too short/corrupt, length is %d", len(a.b))
 	}
 	cid := uint16(a.b[2]) | (uint16(a.b[3]) << 8)
 	if cid == 5 {
@@ -390,8 +370,4 @@ func (h *HCI) handleL2CAP(b []byte) error {
 	}
 	c.aclc <- a
 	return nil
-}
-
-func (h *HCI) trace(fmt string, v ...interface{}) {
-	log.Printf(fmt, v)
 }
