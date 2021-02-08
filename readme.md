@@ -29,10 +29,18 @@ Before starting a gatt program, make sure that your BLE device is down:
     sudo hciconfig
     sudo hciconfig hci0 down  # or whatever hci device you want to use
 
+On more modern systems where `hciconfig` does not exist, you can use the
+new `btmgmt` tool:
+
+    btmgmt info
+    sudo btmgmt power off
+
 If you have BlueZ 5.14+ (or aren't sure), stop the built-in
 bluetooth server, which interferes with gatt, e.g.:
 
     sudo service bluetooth stop
+    # OR
+    sudo systemctl stop bluetooth
 
 Because gatt programs administer network devices, they must
 either be run as root, or be granted appropriate capabilities:
