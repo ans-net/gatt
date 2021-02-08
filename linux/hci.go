@@ -171,20 +171,23 @@ func (h *HCI) mainLoop() {
 		}
 		p := make([]byte, n)
 		copy(p, b)
-		h.handlePacket(p)
+		if err := h.handlePacket(p); err != nil {
+			fmt.Printf("HCI packet error: %s", err.Error())
+		}
 	}
 }
 
-func (h *HCI) handlePacket(b []byte) {
+func (h *HCI) handlePacket(b []byte) error {
 	t, b := packetType(b[0]), b[1:]
 	switch t {
 	case typACLDataPkt:
-		h.handleL2CAP(b)
+		return h.handleL2CAP(b)
 	case typEventPkt:
 		go func() {
 			h.e.Dispatch(b)
 		}()
 	}
+	return nil
 }
 
 func (h *HCI) resetDevice() error {
@@ -343,7 +346,7 @@ func (h *HCI) handleLEMeta(b []byte) error {
 	// case evt.LELTKRequest:
 	// case evt.LERemoteConnectionParameterRequest:
 	default:
-		return fmt.Errorf("Unhandled LE event: %s, [ % X ]", code, b)
+		return fmt.Errorf("Unhandled LE event: %v, [ % X ]", code, b)
 	}
 	return nil
 }
@@ -357,8 +360,8 @@ func (h *HCI) handleL2CAP(b []byte) error {
 	defer h.connsmu.Unlock()
 	c, found := h.conns[a.attr]
 	if !found {
-		// should not happen, just be cautious for now.
-		return nil
+		// should not happen
+		return fmt.Errorf("l2conn: connection with attribute %d not found", a.attr)
 	}
 	if len(a.b) < 4 {
 		return fmt.Errorf("l2conn: l2cap packet is too short/corrupt, length is %d", len(a.b))
