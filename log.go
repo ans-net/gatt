@@ -10,7 +10,7 @@ var currentLogFunctionError LogFunction
 
 // SetLogFunctionTrace will set the function used for trace messages.
 func SetLogFunctionTrace(f LogFunction) {
-	currentLogFunctionInfo = f
+	currentLogFunctionTrace = f
 }
 
 // SetLogFunctionInfo will set the function used for informational log messages.
